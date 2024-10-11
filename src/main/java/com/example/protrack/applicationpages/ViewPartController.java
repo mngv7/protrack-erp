@@ -1,143 +1,148 @@
 package com.example.protrack.applicationpages;
 
-import com.example.protrack.parts.PartsDAO;
-import com.example.protrack.requests.Requests;
-import com.example.protrack.requests.RequestsDAO;
+import com.example.protrack.Main;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.Node;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.example.protrack.applicationpages.WarehousePastRequests;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import com.example.protrack.parts.Parts;
+import com.example.protrack.parts.PartsDAO;
+import com.example.protrack.requests.RequestsDAO;
+import com.example.protrack.requests.Requests;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ViewPartController {
     @FXML
-    private Button closePopupButton;
+    private TableView<WarehousePastRequests> PartRequestsTable;
+//    private List<PartRequests> partRequests;
+
+
 
     @FXML
-    private TableView<RequestWithPartName> partRequestsTable;
-    @FXML
-    private TableColumn<RequestWithPartName, Integer> colLocationID;
-    @FXML
-    private TableColumn<RequestWithPartName, Integer> colPartRequestsPartID;
-    @FXML
-    private TableColumn<RequestWithPartName, String> colPartRequestsPartName;
-    @FXML
-    private TableColumn<RequestWithPartName, Integer> colPartRequestsPartQuantity;
-    @FXML
-    private TableColumn<RequestWithPartName, Void> acceptColumn;
-    @FXML
-    private TableColumn<RequestWithPartName, Void> rejectColumn;
+    private TableColumn<WarehousePastRequests, Integer> colPartRequestsPartID;
 
-    private ObservableList<RequestWithPartName> partRequestsList;
+    @FXML
+    private TableColumn<WarehousePastRequests, String> colPartRequestsPartName;
+
+    @FXML
+    private TableColumn<WarehousePastRequests, Integer> colPartRequestsPartQuantity;
+
+    private ObservableList<WarehousePastRequests> PartRequestsList;
+
+//    private WarehouseController parentWarehouse;
+
+    public Button closePopupButton;
+
+
+//    private ViewPartController parentViewPart;
+
+    //    public void setParentWarehouseController (WarehouseController warehouse){
+//        this.parentWarehouse = warehouse;
+//    }
+//    public void setParentViewPartController (ViewPartController WarehousePastRequests){
+//        this.parentViewPart = WarehousePastRequests;
+//    }
+
 
     public void initialize() {
+
+
+
         // Set up the TableView columns with the corresponding property values
-        colPartRequestsPartID.setCellValueFactory(new PropertyValueFactory<>("partId"));
-
-        colPartRequestsPartName.setCellValueFactory(new PropertyValueFactory<>("partName"));
-
+        colPartRequestsPartID.setCellValueFactory(new PropertyValueFactory<>("partsId"));
+        colPartRequestsPartName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colPartRequestsPartQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
 
-        // Initialize the ObservableList and set it to the TableView
-        partRequestsList = FXCollections.observableArrayList();
-        partRequestsTable.setItems(partRequestsList);
-        partRequestsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        colLocationID.setCellValueFactory(new PropertyValueFactory<>("locationId")); // Bind the location ID column
+        //Initialize the ObservableList and set it to the TableView
+        PartRequestsList = FXCollections.observableArrayList();
+        PartRequestsTable.setItems(PartRequestsList);
+        PartRequestsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        // Accept column
-        acceptColumn.setCellFactory(column -> new TableCell<RequestWithPartName, Void>() {
-            private final Button acceptButton = new Button("✔");
+        loadPartsRequestFormDB();
 
-            {
-                acceptButton.setOnAction(e -> {
-                    RequestWithPartName request = getTableView().getItems().get(getIndex());
-                    handleAccept(request);
-                });
-            }
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : acceptButton);
-            }
-        });
-
-        // Reject column
-        rejectColumn.setCellFactory(column -> new TableCell<RequestWithPartName, Void>() {
-            private final Button rejectButton = new Button("✖");
-
-            {
-                rejectButton.setOnAction(e -> {
-                    RequestWithPartName request = getTableView().getItems().get(getIndex());
-                    handleReject(request);
-                });
-            }
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : rejectButton);
-            }
-        });
-
-        // Load and display the initial list of requests
-        refreshTable();
     }
 
-    public void refreshTable() {
-        partRequestsList.clear();
+    public void loadPartsRequestFormDB() {
+        PartRequestsList.clear();  // Clear the list to avoid duplicates
+
+        // Create DAO objects
         RequestsDAO requestsDAO = new RequestsDAO();
-        PartsDAO partsDAO = new PartsDAO(); // Create an instance of PartsDAO
 
-        List<Requests> fetchedRequests = requestsDAO.getAllRequests();
+        // Use getPartRequests() method to fetch all part requests from both 'requests' and 'parts' tables
+        List<WarehousePastRequests> partRequests = requestsDAO.getPartRequests();
 
-        for (Requests request : fetchedRequests) {
-            // Fetch part name using partId
-            String partName = partsDAO.getPartById(request.getPartId()).getName();
-            // Add the request to the observable list along with part name
-            partRequestsList.add(new RequestWithPartName(request, partName));
-        }
+        // Add all the part requests to the ObservableList
+        PartRequestsList.addAll(partRequests);
+
+        // Refresh the TableView to display updated data
+        PartRequestsTable.refresh();
     }
 
-    // Inner class to wrap Requests with part name
-    public static class RequestWithPartName extends Requests {
-        private final String partName;
 
-        public RequestWithPartName(Requests request, String partName) {
-            super(request.getLocationId(), request.getPartId(), request.getRequestId(), request.getQuantity());
-            this.partName = partName;
-        }
 
-        public String getPartName() {
-            return partName;
-        }
 
-        public int getRequestID() {
-            return getRequestId();
-        }
-    }
 
-    public void handleReject(Requests request) {
-        RequestsDAO requestsDAO = new RequestsDAO();
-        requestsDAO.deleteRequestById(request.getRequestId());
-    }
 
-    public void handleAccept(Requests request) {
-        RequestsDAO requestsDAO = new RequestsDAO();
-        requestsDAO.deleteRequestById(request.getRequestId());
-        // full functionality could be implemented here
-    }
 
-    public void onClosePopupButton() {
+
+
+
+
+
+
+
+
+    public void onClosePopupButton(ActionEvent actionEvent) {
+        // Create a confirmation alert
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.initStyle(StageStyle.UNDECORATED);
+        alert.setHeaderText("Cancel Part Creation");
+        alert.setContentText("Are you sure you want to cancel?");
+        alert.setGraphic(null);
+
+        // Apply custom stylesheet to the alert dialog
+        DialogPane dialogPane = alert.getDialogPane();
+        String stylesheet = Objects.requireNonNull(Main.class.getResource("cancelAlert.css")).toExternalForm();
+        dialogPane.getStyleClass().add("cancelDialog");
+        dialogPane.getStylesheets().add(stylesheet);
+
+        // Define the confirm and back buttons
+        ButtonType confirmBtn = new ButtonType("Confirm", ButtonBar.ButtonData.YES);
+        ButtonType backBtn = new ButtonType("Back", ButtonBar.ButtonData.NO);
+
+        alert.getButtonTypes().setAll(confirmBtn, backBtn);
+
         // Get the current stage (popup window)
         Stage stage = (Stage) closePopupButton.getScene().getWindow();
-        stage.close();
+
+        // Set button data for confirm and back buttons
+        Node confirmButton = dialogPane.lookupButton(confirmBtn);
+        ButtonBar.setButtonData(confirmButton, ButtonBar.ButtonData.LEFT);
+        confirmButton.setId("confirmBtn");
+        Node backButton = dialogPane.lookupButton(backBtn);
+        ButtonBar.setButtonData(backButton, ButtonBar.ButtonData.RIGHT);
+        backButton.setId("backBtn");
+
+        // Show the alert and handle the user's response
+        alert.showAndWait();
+        if (alert.getResult().getButtonData() == ButtonBar.ButtonData.YES) {
+            // Close the stage if user confirms cancellation
+            alert.close();
+            stage.close();
+        } else if (alert.getResult().getButtonData() == ButtonBar.ButtonData.NO) {
+            // Close the alert if user decides to go back
+            alert.close();
+        }
     }
 }
