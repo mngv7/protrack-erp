@@ -1,28 +1,24 @@
 package com.example.protrack.requests;
 
+import com.example.protrack.applicationpages.WarehousePastRequests;
+import com.example.protrack.products.Product;
+import com.example.protrack.products.TestRecord;
 import com.example.protrack.utility.DatabaseConnection;
+import com.example.protrack.warehouseutil.LocationsAndContentsDAO;
+import com.example.protrack.warehouseutil.Warehouse;
+import com.example.protrack.warehouseutil.Workstation;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Data Access Object (DAO) for managing requests in the database.
- * Handles CRUD operations for requests.
- */
 public class RequestsDAO {
     private final Connection connection;
 
-    /**
-     * Constructs a RequestsDAO and establishes a database connection.
-     */
     public RequestsDAO() {
         connection = DatabaseConnection.getInstance();
     }
 
-    /**
-     * Creates the "requests" table in the database if it does not exist.
-     */
     public void createTable() {
         try {
             // Create a statement object for sending SQL queries to the database
@@ -44,8 +40,8 @@ public class RequestsDAO {
     }
 
     /**
-     * Inserts a new request into database.
-     * @param requests the request to be added
+     * Inserts inputted request into request table
+     * @param requests a request for parts
      */
     public void newRequest(Requests requests) {
         try {
@@ -136,6 +132,25 @@ public class RequestsDAO {
         // return list of requests in table
         return requests;
     }
+
+    /**
+     * Removes a part request from the database.
+     * @param partId the ID of the part request to be removed
+     */
+    public void removePartRequest(int partId) {
+        String query = "DELETE FROM requests WHERE partId = ?";  // SQL statement to delete a specific part request
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, partId);  // Set the partId parameter in the SQL query
+            stmt.executeUpdate();     // Execute the deletion
+
+            System.out.println("Part request with partId " + partId + " removed successfully.");
+        } catch (SQLException ex) {
+            System.err.println("Error removing part request: " + ex.getMessage());
+        }
+    }
+
+
 
     /**
      * Checks if the "requests" table is empty.

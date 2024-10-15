@@ -1,4 +1,5 @@
 package com.example.protrack.requests;
+import com.example.protrack.parts.*;
 
 /**
  * Represents a stock request made for transferring parts between locations.
@@ -51,6 +52,12 @@ public class Requests {
      */
     public Integer getPartId() {
         return partId;
+    }
+
+    public String getPartName() {
+        PartsDAO dao = new PartsDAO();
+        Parts thisPart = dao.getPartById(partId);
+        return thisPart.getName();
     }
 
     /**
