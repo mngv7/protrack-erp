@@ -41,20 +41,41 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * The Main class is the entry point for the ProTrack application.
+ * It initialises and populates various database tables, sets up the application window,
+ * and launches the JavaFX application.
+ */
 public class Main extends Application {
 
     private static final String TITLE = "ProTrack";
     private static final int WIDTH = 1280;
     private static final int HEIGHT = 720;
 
+    /**
+     * Returns the width of the application window.
+     *
+     * @return the width of the window
+     */
     public static int getWidth() {
         return WIDTH;
     }
 
+    /**
+     * Returns the height of the application window.
+     *
+     * @return the height of the window
+     */
     public static int getHeight() {
         return HEIGHT;
     }
 
+    /**
+     * The main method that serves as the entry point to the application.
+     * It sets up database tables, populates them with test data, and launches the JavaFX application.
+     * @param args command-line arguments
+     * @throws SQLException if there is an error with database operations
+     */
     public static void main(String[] args) throws SQLException {
 
         ProductDAO productDAO = new ProductDAO();
@@ -343,6 +364,12 @@ public class Main extends Application {
         launch();
     }
 
+    /**
+     * Starts the JavaFX application by setting up the stage and scene.
+     *
+     * @param stage the primary stage for this application
+     * @throws IOException if the FXML file cannot be loaded
+     */
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("login-view.fxml"));
