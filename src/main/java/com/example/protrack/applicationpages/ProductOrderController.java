@@ -90,7 +90,7 @@ public class ProductOrderController {
 
     public void setWorkStation(int value) {
         currentWorkstationId = value;
-        //System.out.println("WS ID HERE of po " + currentWorkstationId);
+        System.out.println("WS ID HERE of po " + currentWorkstationId);
     }
 
     /**
