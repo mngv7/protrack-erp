@@ -40,6 +40,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -79,7 +80,7 @@ public class ProductBuildController {
     private Integer currentWorkstationId = -1;
     private Integer currentProductOrderId = -1;
     private Integer currentProductBuild = -1;
-    private final ObservableList<ProductBuild> builds = FXCollections.observableArrayList();
+    private ObservableList<ProductBuild> builds = FXCollections.observableArrayList();
 
     //private ProductBuild currentProductBuild;
     private List<ProductBuildWSAmt> currentBuildsList;
@@ -95,7 +96,6 @@ public class ProductBuildController {
         //System.out.println("PO ID HERE of pb " + currentProductOrderId);
         loadBuildsFromDB();
     }
-
 
     /**
      * Initialises the controller class.
@@ -271,7 +271,6 @@ public class ProductBuildController {
 
             int requiredAmount = boM.getRequiredAmount();
 
-            //
             try {
                 PreparedStatement getWSParts = connection.prepareStatement(
                         "SELECT quantity " +
@@ -298,7 +297,6 @@ public class ProductBuildController {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-
         }
         return productBuildWSAmtList;
     }
@@ -357,7 +355,7 @@ public class ProductBuildController {
 
         for (ProductBuildWSAmt build : currentBuildsList) {
             if (build.getQuantity() < build.getReqAmount()) {
-                System.out.println("This is build" + build.getPartId() + " " + build.getQuantity() + "/" + build.getReqAmount());
+                System.out.println("This is build " + build.getPartId() + " " + build.getQuantity() + "/" + build.getReqAmount());
                 canCommit = 0;
                 break;
             }
