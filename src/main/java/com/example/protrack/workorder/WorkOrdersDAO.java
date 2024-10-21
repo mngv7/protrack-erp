@@ -31,6 +31,14 @@ public interface WorkOrdersDAO {
     List<WorkOrder> getWorkOrdersByEmployeeId(int employeeId);
 
     /**
+     * Retrieves work orders using the order ID.
+     *
+     * @param workOrderId The ID of the work order.
+     * @return A work order associated with the unique ID.
+     */
+    WorkOrder getWorkOrderByOrderId(int workOrderId);
+
+    /**
      * Creates a new work order in the database.
      *
      * @param workOrder The work order to be created.
@@ -50,4 +58,11 @@ public interface WorkOrdersDAO {
      * @param id The ID of the work order to be deleted.
      */
     void deleteWorkOrder(Integer id);
+
+    /**
+     *
+     * @param workOrderID
+     * @param newStatus
+     */
+    void updateWorkOrderStatus(int workOrderID, String newStatus);
 }

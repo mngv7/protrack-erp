@@ -10,7 +10,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
@@ -21,6 +20,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Controller class for managing product orders in application
+ * This class handles the user interface for selecting the product
+ * builds to be processed.
+ */
 public class ProductOrderController {
 
     @FXML
@@ -52,8 +56,11 @@ public class ProductOrderController {
 
     private Integer currentWorkstationId = -1;
 
-    //private Integer currentProductOrderId = -1;
+    private MainController mainController;
 
+    /**
+     * Initialises the controller class.
+     */
     public void initialize() {
         // Populate the ComboBoxes with data from the database
         productOrderComboBox.getItems().setAll(new ProductOrderDAO().getAllProductOrder());
@@ -72,11 +79,24 @@ public class ProductOrderController {
 
     }
 
-    public void setWorkStation(int value) {
-        currentWorkstationId = value;
-        //System.out.println("WS ID HERE of po " + currentWorkstationId);
+    /**
+     * Sets a reference to the main controller for navigation back to the main page.
+     *
+     * @param controller the main controller of the application
+     */
+    public void setMainController(MainController controller) {
+        this.mainController = controller;
     }
 
+    public void setWorkStation(int value) {
+        currentWorkstationId = value;
+        System.out.println("WS ID HERE of po " + currentWorkstationId);
+    }
+
+    /**
+     * Sets values of the table with new values
+     * @param newValue new values being set in table.
+     */
     private void setProductBuildTable(ProductOrder newValue) {
         ProductBuildDAO productBuildDAO = new ProductBuildDAO();
         List<ProductBuild> productBuildList = productBuildDAO.getAllProductBuildsWithPOID(newValue.getProductOrderID());
@@ -91,6 +111,10 @@ public class ProductOrderController {
         }
     }
 
+    /**
+     * Handles the close action for the popup window, displaying
+     * a confirmation dialog before closing the window.
+     */
     public void onClosePopupButton(ActionEvent actionEvent) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.initStyle(StageStyle.UNDECORATED);
@@ -123,27 +147,22 @@ public class ProductOrderController {
         }
     }
 
-    public void goToProductBuildButton(ActionEvent actionEvent) {
-        Stage stage = new Stage();
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/protrack/product-build.fxml"));
-
+    /**
+     * Button that goes to product build page
+     */
+    public void goToProductBuildButton() {
         try {
-            String stylesheet = Objects.requireNonNull(Main.class.getResource("stylesheet.css")).toExternalForm();
-
-            Parent createAllocateWSRoot = fxmlLoader.load();
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/protrack/product-build.fxml"));
+            Parent content = fxmlLoader.load();
 
             ProductBuildController productBuildController = fxmlLoader.getController();
-            //LocationsAndContentsDAO locationsAndContentsDAO = new LocationsAndContentsDAO();
-            //int workstationId = locationsAndContentsDAO.getLocationIDFromAlias(workstationComboBox.getValue());
             productBuildController.setWorkStation(currentWorkstationId);
             ProductOrder productOrder = productOrderComboBox.getSelectionModel().getSelectedItem();
-            //System.out.println("ProductORDERID " + productOrder.getProductOrderID());
             productBuildController.setProductOrder(productOrder.getProductOrderID());
 
-            Scene scene = new Scene(createAllocateWSRoot, Main.getWidth(), Main.getHeight());
-            scene.getStylesheets().add(stylesheet);
-            stage.setScene(scene);
-            stage.show();
+            VBox dynamicVBox = mainController.getDynamicVBox();
+            dynamicVBox.getChildren().clear();
+            dynamicVBox.getChildren().add(content);
 
         } catch (IOException e) {
             e.printStackTrace();

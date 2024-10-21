@@ -1,2 +1,4 @@
 # ProTrack
-this is the readme
+## Documentation
+
+[Javadocs](https://mngv7.github.io/binary-bandits/)

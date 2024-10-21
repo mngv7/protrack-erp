@@ -3,7 +3,6 @@ package com.example.protrack.applicationpages;
 import com.example.protrack.Main;
 import com.example.protrack.customer.Customer;
 import com.example.protrack.customer.CustomerDAOImplementation;
-import com.example.protrack.customer.EditCustomerController;
 import com.example.protrack.parts.Parts;
 import com.example.protrack.parts.PartsDAO;
 import com.example.protrack.products.BillOfMaterialsDAO;
@@ -12,26 +11,24 @@ import com.example.protrack.report.OrgReport;
 import com.example.protrack.users.ProductionUser;
 import com.example.protrack.users.UsersDAO;
 import com.example.protrack.workorder.WorkOrder;
-import com.example.protrack.workorder.WorkOrdersDAO;
 import com.example.protrack.workorder.WorkOrdersDAOImplementation;
 import com.example.protrack.workorderproducts.WorkOrderProduct;
 import com.example.protrack.workorderproducts.WorkOrderProductsDAOImplementation;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -95,6 +92,9 @@ public class DashboardController {
     @FXML
     private LineChart<String, Number> lineChart;
 
+    @FXML
+    private BorderPane dashboardPane;
+
     public HashMap<Integer, Integer> getSumOfParts() {
         return sumOfParts;
     }
@@ -115,6 +115,12 @@ public class DashboardController {
         reorderPoints = inventoryForecasting.getReorderPoints();
         populateReorderPointGrid();
 
+        lineChart.setLegendVisible(false);
+        lineChart.setStyle("-fx-background-color: #eadeff; -fx-border-width: 2;-fx-border-radius: 10;-fx-background-radius: 10; -fx-plot-background: white;");
+        Node chartPlotBackground = lineChart.lookup(".chart-plot-background");
+        if (chartPlotBackground != null) {
+            chartPlotBackground.setStyle("-fx-background-color: white;");
+        }
     }
 
     public void populateReorderPointGrid() {
@@ -126,12 +132,19 @@ public class DashboardController {
         partIdHeader.getStyleClass().add("subheading2"); // Optional styling
         reorderPointGrid.add(partIdHeader, 0, 0);
 
+        Label partNameHeader = new Label("Part Name");
+        partNameHeader.getStyleClass().add("subheading2"); // Optional styling
+        reorderPointGrid.add(partNameHeader, 1, 0);
+
         Label reorderPointHeader = new Label("Reorder Point");
         reorderPointHeader.getStyleClass().add("subheading2"); // Optional styling
-        reorderPointGrid.add(reorderPointHeader, 1, 0);
+        reorderPointGrid.add(reorderPointHeader, 2, 0);
 
         // Initialize row index
         int rowIndex = 1;
+
+        // Initialize PartsDAO to retrieve part names
+        PartsDAO partsDAO = new PartsDAO();
 
         // Iterate through the reorderPoints HashMap and populate the grid
         for (Map.Entry<Integer, Integer> entry : reorderPoints.entrySet()) {
@@ -140,13 +153,24 @@ public class DashboardController {
 
             // Only populate if reorderPointValue is greater than 0
             if (reorderPointValue > 0) {
-                // Create labels for Part ID and Reorder Point
-                Label partIdLabel = new Label(String.valueOf(partId));
-                Label reorderPointLabel = new Label(String.valueOf(reorderPointValue));
+                // Retrieve the part by ID to get its name
+                Parts part = partsDAO.getPartById(partId);
+                String partName = (part != null) ? part.getName() : "Unknown";
 
-                // Add labels to the grid (Part ID in column 0, Reorder Point in column 1)
+                // Create labels for Part ID, Part Name, and Reorder Point
+                Label partIdLabel = new Label(String.valueOf(partId));
+                partIdLabel.setStyle("-fx-font-size: 14px;");
+
+                Label partNameLabel = new Label(partName);
+                partNameLabel.setStyle("-fx-font-size: 14px;");
+
+                Label reorderPointLabel = new Label(String.valueOf(reorderPointValue));
+                reorderPointLabel.setStyle("-fx-font-size: 14px;");
+
+                // Add labels to the grid (Part ID in column 0, Part Name in column 1, Reorder Point in column 2)
                 reorderPointGrid.add(partIdLabel, 0, rowIndex);
-                reorderPointGrid.add(reorderPointLabel, 1, rowIndex);
+                reorderPointGrid.add(partNameLabel, 1, rowIndex);
+                reorderPointGrid.add(reorderPointLabel, 2, rowIndex);
 
                 // Move to the next row for the next entry
                 rowIndex++;
@@ -156,6 +180,7 @@ public class DashboardController {
         // Request layout update to ensure the changes are reflected
         reorderPointGrid.requestLayout();
     }
+
 
 
     private void setLastThreeMonths() {
@@ -264,9 +289,18 @@ public class DashboardController {
             totalCost = roundedTotalCost.doubleValue();
 
             if (totalAmount > 0) {
-                inventoryUsageGrid.add(new Label(partsDAO.getPartById(partsId).getName()), columnIndex, rowIndex);
-                inventoryUsageGrid.add(new Label(Integer.toString(totalAmount)), columnIndex + 1, rowIndex);
-                inventoryUsageGrid.add(new Label("$" + totalCost), columnIndex + 2, rowIndex);
+                Label partName = new Label(partsDAO.getPartById(partsId).getName());
+                partName.setStyle("-fx-font-size: 14px");
+
+                Label partQuantity = new Label(Integer.toString(totalAmount));
+                partName.setStyle("-fx-font-size: 14px");
+
+                Label partTotal = new Label("$" + totalCost);
+                partName.setStyle("-fx-font-size: 14px");
+
+                inventoryUsageGrid.add(partName, columnIndex, rowIndex);
+                inventoryUsageGrid.add(partQuantity, columnIndex + 1, rowIndex);
+                inventoryUsageGrid.add(partTotal, columnIndex + 2, rowIndex);
 
                 rowIndex++;
                 if (rowIndex > 6) { // Number of rows before changing columns.
@@ -288,12 +322,26 @@ public class DashboardController {
 
         // Create Work Order Forecasting Line Chart
         ScatterChart<Number, Number> forecastingChart = createWorkOrderForecastingChart();
+        forecastingChart.setLegendVisible(false);
+        forecastingChart.setStyle("-fx-background-color: #eadeff; -fx-border-width: 2;-fx-border-radius: 10;-fx-background-radius: 10;");
+        Node chartPlotBackground = forecastingChart.lookup(".chart-plot-background");
+        if (chartPlotBackground != null) {
+            chartPlotBackground.setStyle("-fx-background-color: white;");
+        }
 
         // Create Pie Chart for On Schedule vs Behind Schedule
         PieChart schedulePieChart = createSchedulePieChart();
+        schedulePieChart.setLegendVisible(false);
+        schedulePieChart.setStyle("-fx-background-color: #eadeff; -fx-border-width: 2;-fx-border-radius: 10;-fx-background-radius: 10;");
 
         // Create Bar Chart for Total Parts Used, Total Products Produced, Total Cost
         BarChart<String, Number> metricsBarChart = createMetricsBarChart();
+        metricsBarChart.setLegendVisible(false);
+        metricsBarChart.setStyle("-fx-background-color: #eadeff; -fx-border-width: 2;-fx-border-radius: 10;-fx-background-radius: 10;");
+        chartPlotBackground = metricsBarChart.lookup(".chart-plot-background");
+        if (chartPlotBackground != null) {
+            chartPlotBackground.setStyle("-fx-background-color: white;");
+        }
 
         // Add charts to the graph container
         graphContainer.getChildren().addAll(forecastingChart, schedulePieChart, metricsBarChart);
@@ -407,6 +455,8 @@ public class DashboardController {
             pieChart.getData().add(new PieChart.Data(entry.getKey(), entry.getValue()));
         }
 
+        pieChart.setLabelLineLength(0);
+
         return pieChart;
     }
 
@@ -422,8 +472,8 @@ public class DashboardController {
         series.setName("Metrics");
 
         // Add data for Total Parts Used, Total Products Produced, and Total Orders
-        series.getData().add(new XYChart.Data<>("Total Parts Used", orgReport.calculateTotalPartsUsed()));
-        series.getData().add(new XYChart.Data<>("Total Products Produced", orgReport.calculateTotalProductsProduced()));
+        series.getData().add(new XYChart.Data<>("Parts Used", orgReport.calculateTotalPartsUsed()));
+        series.getData().add(new XYChart.Data<>("Products Made", orgReport.calculateTotalProductsProduced()));
 
         // Add the series to the bar chart
         barChart.getData().add(series);
@@ -497,10 +547,6 @@ public class DashboardController {
             String stylesheet = Objects.requireNonNull(Main.class.getResource("stylesheet.css")).toExternalForm();
             scene.getStylesheets().add(stylesheet);
             popupStage.setScene(scene);
-
-            Bounds rootBounds = generateReport.getScene().getRoot().getLayoutBounds();
-            popupStage.setY(rootBounds.getCenterY() - 150);
-            popupStage.setX(rootBounds.getCenterX() - 275);
 
             popupStage.showAndWait();
         } catch (IOException e) {

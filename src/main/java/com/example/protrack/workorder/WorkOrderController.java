@@ -7,26 +7,24 @@ import com.example.protrack.observers.Observer;
 import com.example.protrack.observers.WorkOrderTableSubject;
 import com.example.protrack.users.ProductionUser;
 import com.example.protrack.users.UsersDAO;
+import com.example.protrack.workorderproducts.WorkOrderProduct;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Bounds;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.stage.Window;
+import javafx.stage.*;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 
 public class WorkOrderController implements Observer {
@@ -50,13 +48,13 @@ public class WorkOrderController implements Observer {
     @FXML
     private TableColumn<WorkOrder, String> colShippingAddress;
     @FXML
-    private TableColumn<WorkOrder, Integer> colProducts;
-    @FXML
     private TableColumn<WorkOrder, String> colStatus;
     @FXML
     private TableColumn<WorkOrder, Double> colSubtotal;
     @FXML
     private Button createWorkOrderButton;
+    @FXML
+    private Button exportToCsvButton;
 
     private ObservableList<WorkOrder> workOrders;
     private WorkOrderTableSubject workOrderSubject;
@@ -68,12 +66,42 @@ public class WorkOrderController implements Observer {
         workOrderSubject = new WorkOrderTableSubject();
         workOrderSubject.registerObserver(this);
 
+        // Create a DateTimeFormatter for formatting the date
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
         // Sets the TableView columns with the corresponding property values
         colWorkOrderId.setCellValueFactory(new PropertyValueFactory<>("workOrderId"));
         colOrderOwner.setCellValueFactory(new PropertyValueFactory<>("orderOwner"));
         colCustomer.setCellValueFactory(new PropertyValueFactory<>("customer"));
-        colOrderDate.setCellValueFactory(new PropertyValueFactory<>("orderDate"));
-        colDeliveryDate.setCellValueFactory(new PropertyValueFactory<>("deliveryDate"));
+
+        // Custom cell factory for colOrderDate
+        colOrderDate.setCellValueFactory(new PropertyValueFactory<>("orderDate")); // Just bind the property
+        colOrderDate.setCellFactory(column -> new TableCell<WorkOrder, LocalDateTime>() {
+            @Override
+            protected void updateItem(LocalDateTime item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.format(dateFormatter));
+                }
+            }
+        });
+
+        // Custom cell factory for colDeliveryDate
+        colDeliveryDate.setCellValueFactory(new PropertyValueFactory<>("deliveryDate")); // Just bind the property
+        colDeliveryDate.setCellFactory(column -> new TableCell<WorkOrder, LocalDateTime>() {
+            @Override
+            protected void updateItem(LocalDateTime item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.format(dateFormatter));
+                }
+            }
+        });
+
         colShippingAddress.setCellValueFactory(new PropertyValueFactory<>("shippingAddress"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         colSubtotal.setCellValueFactory(new PropertyValueFactory<>("subtotal"));
@@ -133,9 +161,6 @@ public class WorkOrderController implements Observer {
             scene.getStylesheets().add(stylesheet);
             popupStage.setScene(scene);
 
-            // Center the popup window on the screen
-            centerPopupWindow(popupStage);
-
             // Show the popup window
             popupStage.showAndWait();
             workOrderSubject.syncDataFromDB();
@@ -162,23 +187,11 @@ public class WorkOrderController implements Observer {
             scene.getStylesheets().add(stylesheet);
             popupStage.setScene(scene);
 
-            // Center the popup window on the screen
-            centerPopupWindow(popupStage);
-
             popupStage.showAndWait();
             workOrderSubject.syncDataFromDB();
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Centers the popup window on the screen.
-     */
-    private void centerPopupWindow(Stage popupStage) {
-        Bounds rootBounds = createWorkOrderButton.getScene().getRoot().getLayoutBounds();
-        popupStage.setY(rootBounds.getCenterY() - (HEIGHT / 2));
-        popupStage.setX(rootBounds.getCenterX() - (WIDTH / 2));
     }
 
     /**
@@ -210,5 +223,66 @@ public class WorkOrderController implements Observer {
 
         workOrdersDAO.createWorkOrder(newWorkOrder);
         workOrderSubject.syncDataFromDB();
+    }
+
+    /**
+     * Method that handles the export to CSV when the button is clicked.
+     */
+    public void exportToCSV() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save CSV File");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        File file = fileChooser.showSaveDialog(exportToCsvButton.getScene().getWindow());
+
+        if (file != null) {
+            try (FileWriter writer = new FileWriter(file)) {
+                // Write the header row
+                writer.write("Work Order ID,Owner,Customer,Order Date,Delivery Date,Shipping Address,Products,Status,Subtotal\n");
+
+                // Fetch all work orders from the DAO
+                List<ProductionUser> productionUsers = new UsersDAO().getProductionUsers();
+                List<Customer> customers = new CustomerDAOImplementation().getAllCustomers();
+
+                WorkOrdersDAOImplementation workOrdersDAO = new WorkOrdersDAOImplementation(productionUsers, customers);
+                List<WorkOrder> workOrders = workOrdersDAO.getAllWorkOrders();
+
+                // Loop through each work order and export details including products
+                for (WorkOrder workOrder : workOrders) {
+                    // Fetch the products for this work order
+                    List<WorkOrderProduct> products = workOrder.getProducts();
+
+                    // Create a formatted string of all product names and quantities
+                    StringBuilder productDetails = new StringBuilder();
+                    for (WorkOrderProduct product : products) {
+                        productDetails.append(product.getProductName())
+                                .append(" (Qty: ")
+                                .append(product.getQuantity())
+                                .append("), ");
+                    }
+
+                    // Remove the trailing comma and space if products exist
+                    if (!productDetails.isEmpty()) {
+                        productDetails.setLength(productDetails.length() - 2);
+                    }
+
+                    // Write the work order details to the CSV
+                    writer.write(String.format("%d,%s,%s,%s,%s,\"%s\",\"%s\",%s,%.2f\n",
+                            workOrder.getWorkOrderId(),
+                            workOrder.getOrderOwner(),
+                            workOrder.getCustomer(),
+                            workOrder.getOrderDate(),
+                            workOrder.getDeliveryDate(),
+                            workOrder.getShippingAddress(),
+                            productDetails,  // Include the products
+                            workOrder.getStatus(),
+                            workOrder.getSubtotal()
+                    ));
+                }
+
+                System.out.println("CSV file created successfully.");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

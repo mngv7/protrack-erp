@@ -139,6 +139,23 @@ public class WorkOrdersDAOImplementation implements WorkOrdersDAO {
     }
 
     @Override
+    public WorkOrder getWorkOrderByOrderId(int workOrderId) {
+        String sqlAllWorkOrders = "SELECT * FROM work_orders WHERE work_order_id = ?";
+        WorkOrder workOrder = null;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sqlAllWorkOrders)) {
+            preparedStatement.setInt(1, workOrderId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            workOrder = mapToWorkOrder(resultSet);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return workOrder;
+    }
+
+    @Override
     public List<WorkOrder> getAllWorkOrders() {
         String sqlAllWorkOrders = "SELECT * FROM work_orders";
         List<WorkOrder> allWorkOrders = new ArrayList<>();
@@ -349,5 +366,15 @@ public class WorkOrdersDAOImplementation implements WorkOrdersDAO {
         return workOrders;
     }
 
-
+    @Override
+    public void updateWorkOrderStatus(int workOrderID, String newStatus) {
+        String sqlUpdateWorkOrder = "UPDATE work_orders SET status = ? WHERE work_order_id = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sqlUpdateWorkOrder)) {
+            preparedStatement.setString(1, newStatus);
+            preparedStatement.setInt(2, workOrderID);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

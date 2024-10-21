@@ -5,7 +5,6 @@ import com.example.protrack.database.WorkstationPartDBTable;
 import com.example.protrack.warehouseutil.LocationsAndContentsDAO;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -13,6 +12,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -23,16 +23,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Controller class for viewing workstation in application
+ * This class handles the user interface for viewing stock
+ * in workstation, completing product builds and sending
+ * part requests
+ */
 public class ViewWorkstation2 {
 
     private static final String TITLE = "Parts Request Form";
-    private static final int WIDTH = 500;
-    private static final int HEIGHT = 500;
+    private static final int WIDTH = 350;
+    private static final int HEIGHT = 280;
     @FXML
     public Button closePopupButton;
-    @FXML
-    private Button toProductOrder;
+
     private MainController parentMainController;
+
     @FXML
     private TableView wsPartTable;
     @FXML
@@ -44,11 +50,21 @@ public class ViewWorkstation2 {
     @FXML
     private TableColumn<WorkstationPartDBTable, String> colAddPart;
     @FXML
-    private Button toProductBuild;
-    private ObservableList<WorkstationPartDBTable> wsPartDBTable;
-    private int workStationId = -1;
+    private Label workStationTitle;
 
+    private ObservableList<WorkstationPartDBTable> wsPartDBTable;
+    private int workStationId;
+
+    /**
+     * Initialises the controller.
+     *
+     */
     public void initialize() {
+        LocationsAndContentsDAO locationsAndContentsDAO = new LocationsAndContentsDAO();
+        String workstationName = locationsAndContentsDAO.getNameFromID(workStationId);
+
+        workStationTitle.setText("Workstation " + workstationName);
+
         colWSPartId.setCellValueFactory(new PropertyValueFactory<>("partID"));
         colWSPartName.setCellValueFactory(new PropertyValueFactory<>("partName"));
         colWSPartQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
@@ -57,10 +73,11 @@ public class ViewWorkstation2 {
             @Override
             public TableCell<WorkstationPartDBTable, String> call(TableColumn<WorkstationPartDBTable, String> param) {
                 return new TableCell<>() {
-                    private final Button addPartToPB = new Button("Add to Product Build");
+                    private final Button addPartToPB = new Button(" Add to Product Build ");
 
                     {
                         addPartToPB.getStyleClass().add("add-to-product-build-button");
+                        addPartToPB.setStyle("-fx-border: none; -fx-text-align: center; -fx-display: inline-block; -fx-font-size: 12px; -fx-background-color: #eaeaff");
 
                         // Handles row deletion
                         addPartToPB.setOnAction(event -> {
@@ -68,8 +85,6 @@ public class ViewWorkstation2 {
                             //getTableView().getItems().remove(product);  // Remove from table
 
                             System.out.println("Add this part to Product build " + wsPartDBTableItem.getPartName());
-
-
                         });
                     }
 
@@ -100,15 +115,27 @@ public class ViewWorkstation2 {
         return this.parentMainController;
     }
 
+    /**
+     * Sets a reference to the main controller for navigation back to the main page.
+     *
+     * @param controller the main controller of the application
+     */
     public void setMainController(MainController controller) {
         this.parentMainController = controller;
     }
 
+    /**
+     * Refreshes the parts table
+     */
     public void refreshTable() {
         wsPartDBTable.clear();
         wsPartDBTable.addAll(workstationPartDBTableList());
     }
 
+    /**
+     * Returns list of values in table
+     * @return list of values in table
+     */
     public List<WorkstationPartDBTable> workstationPartDBTableList() {
         List<WorkstationPartDBTable> wsDBParts = new ArrayList<>();
         LocationsAndContentsDAO locationsAndContentsDAO = new LocationsAndContentsDAO();
@@ -129,12 +156,15 @@ public class ViewWorkstation2 {
      */
     public void setWorkStationIdV3(Integer value) {
         workStationId = value;
-        System.out.println("WS ID HERE " + workStationId);
         refreshTable();
     }
 
+    /**
+     * Handles the close action for the popup window, displaying
+     * a confirmation dialog before closing the window.
+     */
     @FXML
-    protected void onClosePopupButton(ActionEvent actionEvent) {
+    protected void onClosePopupButton() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.initStyle(StageStyle.UNDECORATED);
         alert.setHeaderText("Exit Workstation");
@@ -187,60 +217,34 @@ public class ViewWorkstation2 {
             String stylesheet = Objects.requireNonNull(Main.class.getResource("stylesheet.css")).toExternalForm();
             scene.getStylesheets().add(stylesheet);
             popupStage.setScene(scene);
-            popupStage.setY(150);
-            popupStage.setX(390);
+
             popupStage.showAndWait();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void refreshTableButton(ActionEvent actionEvent) {
+    /**
+     * Button manually refreshes table
+     */
+    public void refreshTableButton() {
         refreshTable();
     }
 
-    public void goToProductBuild(ActionEvent actionEvent) {
-        Stage stage = new Stage();
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/protrack/product-build.fxml"));
-
+    /**
+     * Button that goes to product order page
+     */
+    public void goToProductOrder() {
         try {
-            String stylesheet = Objects.requireNonNull(Main.class.getResource("stylesheet.css")).toExternalForm();
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/protrack/product-order.fxml"));
+            Parent content = fxmlLoader.load();
+            VBox dynamicVBox = parentMainController.getDynamicVBox();
+            dynamicVBox.getChildren().clear();
+            dynamicVBox.getChildren().add(content);
 
-            Parent createAllocateWSRoot = fxmlLoader.load();
-
-            ProductBuildController productBuildController = fxmlLoader.getController();
-            //LocationsAndContentsDAO locationsAndContentsDAO = new LocationsAndContentsDAO();
-            //int workstationId = locationsAndContentsDAO.getLocationIDFromAlias(workstationComboBox.getValue());
-            productBuildController.setWorkStation(workStationId);
-
-            Scene scene = new Scene(createAllocateWSRoot, Main.getWidth(), Main.getHeight());
-            scene.getStylesheets().add(stylesheet);
-            stage.setScene(scene);
-            stage.show();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void goToProductOrder(ActionEvent actionEvent) {
-        Stage stage = new Stage();
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/protrack/product-order.fxml"));
-
-        try {
-            String stylesheet = Objects.requireNonNull(Main.class.getResource("stylesheet.css")).toExternalForm();
-
-            Parent createAllocateWSRoot = fxmlLoader.load();
-
-            //ProductBuildController productBuildController = fxmlLoader.getController();
-            //productBuildController.setWorkStation(workStationId);
             ProductOrderController productOrderController = fxmlLoader.getController();
             productOrderController.setWorkStation(workStationId);
-
-            Scene scene = new Scene(createAllocateWSRoot, Main.getWidth(), Main.getHeight());
-            scene.getStylesheets().add(stylesheet);
-            stage.setScene(scene);
-            stage.show();
+            productOrderController.setMainController(parentMainController);
 
         } catch (IOException e) {
             e.printStackTrace();

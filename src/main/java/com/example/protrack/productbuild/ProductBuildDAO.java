@@ -6,6 +6,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class of product build with database relevant operations
+ */
 public class ProductBuildDAO {
     private final Connection connection;
 
@@ -113,6 +116,11 @@ public class ProductBuildDAO {
         return productBuilds;
     }
 
+    /**
+     * Returns list of product builds with specified product build id.
+     * @param currentProductBuildId build id
+     * @return list of product builds
+     */
     public List<ProductBuild> getAllProductBuildsWithPBID(int currentProductBuildId) {
         // empty list of products
         List<ProductBuild> productBuilds = new ArrayList<>();
@@ -145,6 +153,11 @@ public class ProductBuildDAO {
         return productBuilds;
     }
 
+    /**
+     * Returns list of product builds with specified product order id
+     * @param currentProductOrderId product order id
+     * @return list of product builds
+     */
     public List<ProductBuild> getAllProductBuildsWithPOID(int currentProductOrderId) {
         // empty list of products
         List<ProductBuild> productBuilds = new ArrayList<>();
@@ -179,6 +192,11 @@ public class ProductBuildDAO {
         return productBuilds;
     }
 
+    /**
+     * Updates stated build with new build completion percentage
+     * @param buildId build id
+     * @param percentage new build completion percentage
+     */
     public void updateBuildCompletion(int buildId, float percentage) {
         try {
             PreparedStatement updateBuild = connection.prepareStatement(

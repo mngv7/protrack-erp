@@ -1,7 +1,5 @@
 package com.example.protrack.requests;
 
-import com.example.protrack.products.Product;
-import com.example.protrack.products.TestRecord;
 import com.example.protrack.utility.DatabaseConnection;
 
 import java.sql.*;
@@ -67,6 +65,27 @@ public class RequestsDAO {
         } catch (SQLException ex) {
             // print error if error occurs
             System.err.println(ex);
+        }
+    }
+
+    /**
+     * Deletes a request from the database based on requestId.
+     * @param requestId the ID of the request to delete
+     */
+    public void deleteRequestById(int requestId) {
+        String query = "DELETE FROM requests WHERE requestId = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, requestId); // Set requestId for the query
+            int rowsAffected = stmt.executeUpdate(); // Execute the delete query
+
+            if (rowsAffected > 0) {
+                System.out.println("Request with ID " + requestId + " deleted successfully.");
+            } else {
+                System.out.println("No request found with ID " + requestId);
+            }
+        } catch (SQLException ex) {
+            System.err.println("Error deleting request: " + ex.getMessage());
         }
     }
 

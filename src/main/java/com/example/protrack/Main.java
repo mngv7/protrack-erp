@@ -44,8 +44,6 @@ import java.util.Objects;
 public class Main extends Application {
 
     private static final String TITLE = "ProTrack";
-    //private static final int WIDTH = 1920;
-    //private static final int HEIGHT = 1080;
     private static final int WIDTH = 1280;
     private static final int HEIGHT = 720;
 
@@ -320,6 +318,7 @@ public class Main extends Application {
             productBuildDAO.newProductBuild(new ProductBuild(503, 2, 0.00F, 2));
             productBuildDAO.newProductBuild(new ProductBuild(504, 2, 0.00F, 2));
             productBuildDAO.newProductBuild(new ProductBuild(505, 3, 0.00F, 3));
+            productBuildDAO.newProductBuild(new ProductBuild(506, 3, 0.00F, 3));
 
         }
 

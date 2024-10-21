@@ -154,7 +154,7 @@ public class WarehouseController {
             root.getStylesheets().add(stylesheet);
             stage.initStyle(StageStyle.UNDECORATED);
             stage.setTitle("Create Workstation");
-            stage.setScene(new Scene(root));
+            stage.setScene(new Scene(root, 400, 220));
             stage.showAndWait();
 
             loadWorkstationData();
@@ -195,7 +195,7 @@ public class WarehouseController {
             controller.setParentWarehouseController(this);
         }
 
-        Scene rootScene = new Scene(root);
+        Scene rootScene = new Scene(root, 300, 155);
         String stylesheet = Objects.requireNonNull(Main.class.getResource("stylesheet.css")).toExternalForm();
         rootScene.getStylesheets().add(stylesheet);
         Stage stage = new Stage();
@@ -249,12 +249,10 @@ public class WarehouseController {
 
 
             // Set the scene for the pop-up
-            Scene scene = new Scene(ViewPartsRoot, WIDTH, HEIGHT);
+                Scene scene = new Scene(ViewPartsRoot, 600, HEIGHT);
             String stylesheet = Objects.requireNonNull(Main.class.getResource("stylesheet.css")).toExternalForm();
             scene.getStylesheets().add(stylesheet);
             popupStage.setScene(scene);
-            popupStage.setY(150);
-            popupStage.setX(390);
             popupStage.showAndWait();
         } catch (IOException e) {
             e.printStackTrace();

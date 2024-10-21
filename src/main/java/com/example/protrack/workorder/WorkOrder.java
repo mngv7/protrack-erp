@@ -2,8 +2,11 @@ package com.example.protrack.workorder;
 
 import com.example.protrack.customer.Customer;
 import com.example.protrack.users.ProductionUser;
+import com.example.protrack.workorderproducts.WorkOrderProduct;
+import com.example.protrack.workorderproducts.WorkOrderProductsDAOImplementation;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Represents a work order in the system.
@@ -25,6 +28,8 @@ public class WorkOrder {
     private String status;
 
     private Double subtotal;
+
+    private final WorkOrderProductsDAOImplementation workOrderProductsDAO;
 
     /**
      * Constructs a new WorkOrder instance.
@@ -56,6 +61,16 @@ public class WorkOrder {
         this.shippingAddress = shippingAddress; // This can be null
         this.status = status; // This can be null
         this.subtotal = subtotal;
+        this.workOrderProductsDAO = new WorkOrderProductsDAOImplementation();
+    }
+
+    /**
+     * Returns the list of product in work order.
+     *
+     * @return List of products in the work order
+     */
+    public List<WorkOrderProduct> getProducts() {
+        return workOrderProductsDAO.getWorkOrderProductsByWorkOrderId(workOrderId);
     }
 
     /**

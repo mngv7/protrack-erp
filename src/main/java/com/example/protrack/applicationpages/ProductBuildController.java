@@ -1,26 +1,37 @@
 package com.example.protrack.applicationpages;
 
 import com.example.protrack.Main;
+import com.example.protrack.customer.Customer;
+import com.example.protrack.customer.CustomerDAOImplementation;
 import com.example.protrack.database.ProductBuildWSAmt;
 import com.example.protrack.parts.Parts;
 import com.example.protrack.parts.PartsDAO;
 import com.example.protrack.productbuild.ProductBuild;
 import com.example.protrack.productbuild.ProductBuildDAO;
+import com.example.protrack.productorders.ProductOrderDAO;
 import com.example.protrack.products.BillOfMaterials;
 import com.example.protrack.products.BillOfMaterialsDAO;
 import com.example.protrack.products.TestRecord;
 import com.example.protrack.products.TestRecordDAO;
+import com.example.protrack.users.ProductionUser;
+import com.example.protrack.users.UsersDAO;
 import com.example.protrack.utility.DatabaseConnection;
 import com.example.protrack.warehouseutil.LocationsAndContentsDAO;
 import com.example.protrack.warehouseutil.partIdWithQuantity;
+import com.example.protrack.workorder.WorkOrdersDAOImplementation;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -29,9 +40,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Controller class for managing product builds in application
+ * This class handles the user interface for processing the product
+ * builds.
+ */
 public class ProductBuildController {
 
     @FXML
@@ -63,7 +80,7 @@ public class ProductBuildController {
     private Integer currentWorkstationId = -1;
     private Integer currentProductOrderId = -1;
     private Integer currentProductBuild = -1;
-    private final ObservableList<ProductBuild> builds = FXCollections.observableArrayList();
+    private ObservableList<ProductBuild> builds = FXCollections.observableArrayList();
 
     //private ProductBuild currentProductBuild;
     private List<ProductBuildWSAmt> currentBuildsList;
@@ -80,37 +97,41 @@ public class ProductBuildController {
         loadBuildsFromDB();
     }
 
-
+    /**
+     * Initialises the controller class.
+     */
     public void initialize() {
         colPBWSpartId.setCellValueFactory(new PropertyValueFactory<>("partId"));
         colPBWSpartName.setCellValueFactory(new PropertyValueFactory<>("partName"));
         colPBWSreqAmt.setCellValueFactory(new PropertyValueFactory<>("reqAmount"));
         colWorkstationAmt.setCellValueFactory(new PropertyValueFactory<>("quantity"));
 
-        //System.out.println("HERE IN PB BABY");
         loadBuildsFromDB();
     }
 
+    /**
+     * Loads all product builds of product order
+     * from database
+     */
     private void loadBuildsFromDB() {
-
         try {
+            builds.clear();
             productBuildVBox.getChildren().clear();
             ProductBuildDAO productBuildDAO = new ProductBuildDAO();
             List<ProductBuild> buildList = productBuildDAO.getAllProductBuildsWithPOID(currentProductOrderId);
 
-            //System.out.println("Does buildlist have stuff? " + buildList.size());
-            //System.out.println("Does buildlist have stuff? " + buildList.isEmpty());
             for (ProductBuild build : buildList) {
                 int buildId = build.getBuildId();
                 int productOrderId = build.getProductOrderId();
                 float buildCompletion = build.getBuildCompletion();
                 int productId = build.getProductId();
                 builds.add(new ProductBuild(buildId, productOrderId, buildCompletion, productId));
-                //System.out.println("Got this build Id" + buildId);
 
                 VBox newRow = new VBox();
 
                 Label idLabel = new Label("Build ID: " + buildId);
+                idLabel.setStyle("-fx-font-weight: bold;");
+
                 Label idLabel2 = new Label("Product Order ID: " + productOrderId);
                 Label idLabel3 = new Label("Build Completion: " + buildCompletion);
                 Label idLabel4 = new Label("ProductID: " + productId);
@@ -127,11 +148,21 @@ public class ProductBuildController {
         }
     }
 
+    /**
+     * Refreshes table
+     */
     private void refreshReqTable() {
         PBWSRequirementTableView.getItems().clear();
         PBWSRequirementTableView.getItems().addAll(currentBuildsList);
     }
 
+    /**
+     *
+     * @param vBox
+     * @param productId
+     * @param buildId
+     * @param buildCompletion
+     */
     private void selectProductBuild(VBox vBox, int productId, int buildId, float buildCompletion) {
         //System.out.println("This is productID in pb " + productId);
 
@@ -151,17 +182,15 @@ public class ProductBuildController {
 
         PBWSRequirementTableView.getItems().clear();
         PBWSRequirementTableView.getItems().addAll(productBuildWSAmtList);
-
-
-        //Now using the productBoM generate the table.
-
     }
 
     /**
-     * Loads
+     * Loads Test Records using product id.
+     * The method finds the test records that contain
+     * the stated product id and returns a list.
      *
-     * @param productId
-     * @return
+     * @param productId the id of the test records
+     * @return list of test records.
      */
     private List<TestRecord> loadTestRecord(int productId) {
         List<TestRecord> testRecordsList = new ArrayList<>();
@@ -175,6 +204,10 @@ public class ProductBuildController {
         return testRecordsList;
     }
 
+    /**
+     * Generate product build's test records into page.
+     * @param testRecordList the test record being loaded
+     */
     private void generateTestRecord(List<TestRecord> testRecordList) {
         for (TestRecord testRecord : testRecordList) {
 
@@ -188,15 +221,22 @@ public class ProductBuildController {
             VBox newRow = new VBox();
 
             Label idLabel = new Label("Step " + stepNum + ":");
+            idLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
             Label idLabel2 = new Label(stepDescription);
 
+            Region spacer = new Region();
+            spacer.setMinHeight(10);
+
             if (stepCheckType.equals("CheckBox")) {
-                CheckBox checkBox = new CheckBox("Checkbox");
-                newRow.getChildren().addAll(idLabel, idLabel2, checkBox);
+                CheckBox checkBox = new CheckBox("Completed");
+                checkBox.setStyle("-fx-font-color: grey;");
+                newRow.getChildren().addAll(idLabel, idLabel2, checkBox, spacer);
             } else {
 
-                TextField textfield = new TextField("Enter stuff here");
-                newRow.getChildren().addAll(idLabel, idLabel2, textfield);
+                TextField textfield = new TextField();
+                textfield.setPromptText("Enter test comment");
+                textfield.setStyle("-fx-font-color: gray;");
+                newRow.getChildren().addAll(idLabel, idLabel2, textfield, spacer);
             }
             productBuildTRVBox.getChildren().add(newRow);
         }
@@ -211,8 +251,11 @@ public class ProductBuildController {
     }
 
     /**
-     * TODO Using the list of req parts get parts from WS
-     * TODO If DNE, set to zero
+     * Generates the list required for required and workstation stock table.
+     * If parts does not exist in workstation, set the value to zero.
+     *
+     * @param productBoM list of parts required to complete build
+     * @return list of required parts and the amount contained in the workstation
      */
     private List<ProductBuildWSAmt> loadWorkstationPartsUsingReqParts(List<BillOfMaterials> productBoM) {
         List<ProductBuildWSAmt> productBuildWSAmtList = new ArrayList<>();
@@ -228,7 +271,6 @@ public class ProductBuildController {
 
             int requiredAmount = boM.getRequiredAmount();
 
-            //
             try {
                 PreparedStatement getWSParts = connection.prepareStatement(
                         "SELECT quantity " +
@@ -255,11 +297,15 @@ public class ProductBuildController {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-
         }
         return productBuildWSAmtList;
     }
 
+    /**
+     * Handles the close action for the popup window, displaying
+     * a confirmation dialog before closing the window.
+     * @param actionEvent close action for the popup window
+     */
     public void onClosePopupButton(ActionEvent actionEvent) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.initStyle(StageStyle.UNDECORATED);
@@ -292,10 +338,14 @@ public class ProductBuildController {
         }
     }
 
-
-    public void onAddPartButton(ActionEvent actionEvent) {
-    }
-
+    /**
+     * Commits the parts of the workstation to the build
+     * Removes parts from the workstation and sets build completion to 100%
+     * If insufficient parts, does not allow commit.
+     * If all product builds in this product order is complete, set
+     * the work order to complete.
+     * @param actionEvent commits parts to build
+     */
     public void onCommitButton(ActionEvent actionEvent) {
         int canCommit = 1;
 
@@ -305,7 +355,7 @@ public class ProductBuildController {
 
         for (ProductBuildWSAmt build : currentBuildsList) {
             if (build.getQuantity() < build.getReqAmount()) {
-                System.out.println("THis is build" + build.getPartId() + " " + build.getQuantity() + "/" + build.getReqAmount());
+                System.out.println("This is build " + build.getPartId() + " " + build.getQuantity() + "/" + build.getReqAmount());
                 canCommit = 0;
                 break;
             }
@@ -352,33 +402,62 @@ public class ProductBuildController {
             refreshReqTable();
             loadBuildsFromDB();
 
+            ProductOrderDAO productOrderDAO = new ProductOrderDAO();
+            int workOrderID = productOrderDAO.getWOIDFromProductOrderID(currentProductOrderId);
+            System.out.println("Got workOrderID " + workOrderID);
+
+            //check each pb in po, if all 100%, set wo to complete.
+            int isAllComplete = 1;
+            for (ProductBuild build : builds) {
+                System.out.println("This is build " + build.getBuildId() + " " + build.getBuildCompletion());
+                if (build.getBuildCompletion() != 100.00f) {
+                    isAllComplete = 0;
+                    System.out.println("This PO ain't complete");
+                    break;
+                }
+            }
+
+            if (isAllComplete == 1) {
+                UsersDAO usersDAO = new UsersDAO();
+                List<ProductionUser> productionUserList = usersDAO.getProductionUsers();
+                CustomerDAOImplementation customerDAOImplementation = new CustomerDAOImplementation();
+                List<Customer> customerList = customerDAOImplementation.getAllCustomers();
+                WorkOrdersDAOImplementation workOrdersDAOImplementation = new WorkOrdersDAOImplementation(productionUserList, customerList);
+                workOrdersDAOImplementation.updateWorkOrderStatus(workOrderID, "Complete");
+
+                System.out.println("Should have updated WO to be completed");
+
+                generateLabel();
+            }
+
         }
     }
 
+    /**
+     * Generates label
+     */
+    public void generateLabel() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/protrack/order_label.fxml"));
+            Parent labelPopup = fxmlLoader.load();
 
-    /*
-    @FXML
-    protected void PBSearch(ActionEvent actionEvent) {
-        for (ProductBuild build : builds) {
-            int buildId = build.getBuildId();
-            int productOrderId = build.getProductOrderId();
-            float buildCompletion = build.getBuildCompletion();
-            int productId = build.getProductId();
-            //builds.add(new ProductBuild(buildId, productOrderId, buildCompletion, productId));
-            System.out.println("Got this build Id" + buildId);
+            OrderLabelController labelController = fxmlLoader.getController();
 
-            VBox newRow = new VBox();
+            ProductOrderDAO productOrderDAO = new ProductOrderDAO();
+            int workOrderId = productOrderDAO.getWOIDFromProductOrderID(currentProductOrderId);
 
-            Label idLabel = new Label("Build ID: " + buildId);
-            Label idLabel2 = new Label("Product Order ID: " + productOrderId);
-            Label idLabel3 = new Label("Build Completion: " + buildCompletion);
-            Label idLabel4 = new Label("ProductID: " + productId);
+            labelController.setLabelData(workOrderId);
 
-            newRow.getChildren().addAll(idLabel, idLabel2, idLabel3, idLabel4);
+            Stage stage = new Stage();
+            stage.setScene(new Scene(labelPopup, 700, 420));
+            String stylesheet = Objects.requireNonNull(Main.class.getResource("stylesheet.css")).toExternalForm();
+            stage.getScene().getStylesheets().add(stylesheet);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initStyle(StageStyle.UNDECORATED);  // Customize the style as needed
+            stage.showAndWait();
 
-            newRow.setOnMouseClicked(event -> selectProductBuild(newRow));
-
-            productBuildVBox.getChildren().add(newRow);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    }*/
+    }
 }
