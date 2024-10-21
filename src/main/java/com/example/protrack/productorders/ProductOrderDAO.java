@@ -6,6 +6,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class of product order with database relevant operations
+ */
 public class ProductOrderDAO {
     private final Connection connection;
 
@@ -13,6 +16,9 @@ public class ProductOrderDAO {
         connection = DatabaseConnection.getInstance();
     }
 
+    /**
+     * Creates product order table
+     */
     public void createTable() {
         try {
             // Create a statement object for sending SQL queries to the database

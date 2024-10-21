@@ -26,6 +26,11 @@ import java.util.Objects;
 
 import static java.lang.Integer.parseInt;
 
+/**
+ * Controller class for creating new products.
+ * This class handles the user interface for creating
+ * new products.
+ */
 public class CreateProductController {
     private static final String TITLE = "Create Product";
     private static final int WIDTH =590;
@@ -50,8 +55,8 @@ public class CreateProductController {
     @FXML
     private TextField productIdField;
 
-    /*
-    TODO Ensure that checks to ensure that fields are not empty are added here.
+    /**
+     * Initialises the controller class.
      */
     public void initialize() {
         // Create a binding to check if any field is empty
@@ -142,32 +147,6 @@ public class CreateProductController {
         }
     }
 
-    /*TODO
-    When clicking on the create product button, it sets the time as current time.
-    Then it Adds the current Product to the ProductDB
-    Then it reads all the parts and assigns it to RequiredPartsDB
-    Then the test record pop up occurs
-
-    1. ~Make it so that you can search for Parts.
-    2. ~Generate new row for said part, where you can add number of parts
-    3. ~Ensure that when create product is pressed, it generates a new input in product table
-    4. ~"" For requiredParts table using the parts generated in (2)
-    5. ~Open test records table.
-        All done~
-     */
-
-    /*
-    When clicking on the create product button, it sets the time as current time.
-    Then it Adds the current Product to the ProductDB
-    Then it reads all the parts and assigns it to RequiredPartsDB
-    Then the test record pop up occurs
-
-    Requires:
-    ProductDB
-    RequiredPartsDB
-    TestRecordsDB
-     */
-
     /**
      * Upon clicking "Create Product", create the product in the product table and generate
      * the product's BoM. Also proceed towards creating the product's test records through
@@ -245,7 +224,6 @@ public class CreateProductController {
             }
         }
     }
-
 
     /**
      * Opens and starts up Test record tab

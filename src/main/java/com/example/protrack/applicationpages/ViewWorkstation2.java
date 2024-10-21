@@ -23,6 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Controller class for viewing workstation in application
+ * This class handles the user interface for viewing stock
+ * in workstation, completing product builds and sending
+ * part requests
+ */
 public class ViewWorkstation2 {
 
     private static final String TITLE = "Parts Request Form";
@@ -49,6 +55,10 @@ public class ViewWorkstation2 {
     private ObservableList<WorkstationPartDBTable> wsPartDBTable;
     private int workStationId;
 
+    /**
+     * Initialises the controller.
+     *
+     */
     public void initialize() {
         LocationsAndContentsDAO locationsAndContentsDAO = new LocationsAndContentsDAO();
         String workstationName = locationsAndContentsDAO.getNameFromID(workStationId);
@@ -105,15 +115,27 @@ public class ViewWorkstation2 {
         return this.parentMainController;
     }
 
+    /**
+     * Sets a reference to the main controller for navigation back to the main page.
+     *
+     * @param controller the main controller of the application
+     */
     public void setMainController(MainController controller) {
         this.parentMainController = controller;
     }
 
+    /**
+     * Refreshes the parts table
+     */
     public void refreshTable() {
         wsPartDBTable.clear();
         wsPartDBTable.addAll(workstationPartDBTableList());
     }
 
+    /**
+     * Returns list of values in table
+     * @return list of values in table
+     */
     public List<WorkstationPartDBTable> workstationPartDBTableList() {
         List<WorkstationPartDBTable> wsDBParts = new ArrayList<>();
         LocationsAndContentsDAO locationsAndContentsDAO = new LocationsAndContentsDAO();
@@ -137,6 +159,10 @@ public class ViewWorkstation2 {
         refreshTable();
     }
 
+    /**
+     * Handles the close action for the popup window, displaying
+     * a confirmation dialog before closing the window.
+     */
     @FXML
     protected void onClosePopupButton() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -198,10 +224,16 @@ public class ViewWorkstation2 {
         }
     }
 
+    /**
+     * Button manually refreshes table
+     */
     public void refreshTableButton() {
         refreshTable();
     }
 
+    /**
+     * Button that goes to product order page
+     */
     public void goToProductOrder() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/protrack/product-order.fxml"));
