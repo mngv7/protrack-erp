@@ -15,6 +15,11 @@ import javafx.stage.StageStyle;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+/**
+ * Controller for creating test records for new products.
+ * Handles user interface for creating test records for
+ * new products.
+ */
 public class CreateTestRecordController {
 
     @FXML

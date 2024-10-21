@@ -43,6 +43,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Controller class for managing product builds in application
+ * This class handles the user interface for processing the product
+ * builds.
+ */
 public class ProductBuildController {
 
     @FXML
@@ -92,6 +97,9 @@ public class ProductBuildController {
     }
 
 
+    /**
+     * Initialises the controller class.
+     */
     public void initialize() {
         colPBWSpartId.setCellValueFactory(new PropertyValueFactory<>("partId"));
         colPBWSpartName.setCellValueFactory(new PropertyValueFactory<>("partName"));
@@ -101,6 +109,10 @@ public class ProductBuildController {
         loadBuildsFromDB();
     }
 
+    /**
+     * Loads all product builds of product order
+     * from database
+     */
     private void loadBuildsFromDB() {
         try {
             builds.clear();
@@ -136,11 +148,21 @@ public class ProductBuildController {
         }
     }
 
+    /**
+     * Refreshes table
+     */
     private void refreshReqTable() {
         PBWSRequirementTableView.getItems().clear();
         PBWSRequirementTableView.getItems().addAll(currentBuildsList);
     }
 
+    /**
+     *
+     * @param vBox
+     * @param productId
+     * @param buildId
+     * @param buildCompletion
+     */
     private void selectProductBuild(VBox vBox, int productId, int buildId, float buildCompletion) {
         //System.out.println("This is productID in pb " + productId);
 
@@ -163,10 +185,12 @@ public class ProductBuildController {
     }
 
     /**
-     * Loads Test Records
+     * Loads Test Records using product id.
+     * The method finds the test records that contain
+     * the stated product id and returns a list.
      *
-     * @param productId
-     * @return
+     * @param productId the id of the test records
+     * @return list of test records.
      */
     private List<TestRecord> loadTestRecord(int productId) {
         List<TestRecord> testRecordsList = new ArrayList<>();
@@ -180,6 +204,10 @@ public class ProductBuildController {
         return testRecordsList;
     }
 
+    /**
+     * Generate product build's test records into page.
+     * @param testRecordList the test record being loaded
+     */
     private void generateTestRecord(List<TestRecord> testRecordList) {
         for (TestRecord testRecord : testRecordList) {
 
@@ -223,8 +251,11 @@ public class ProductBuildController {
     }
 
     /**
-     * TODO Using the list of req parts get parts from WS
-     * TODO If DNE, set to zero
+     * Generates the list required for required and workstation stock table.
+     * If parts does not exist in workstation, set the value to zero.
+     *
+     * @param productBoM list of parts required to complete build
+     * @return list of required parts and the amount contained in the workstation
      */
     private List<ProductBuildWSAmt> loadWorkstationPartsUsingReqParts(List<BillOfMaterials> productBoM) {
         List<ProductBuildWSAmt> productBuildWSAmtList = new ArrayList<>();
@@ -272,6 +303,11 @@ public class ProductBuildController {
         return productBuildWSAmtList;
     }
 
+    /**
+     * Handles the close action for the popup window, displaying
+     * a confirmation dialog before closing the window.
+     * @param actionEvent close action for the popup window
+     */
     public void onClosePopupButton(ActionEvent actionEvent) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.initStyle(StageStyle.UNDECORATED);
@@ -304,6 +340,14 @@ public class ProductBuildController {
         }
     }
 
+    /**
+     * Commits the parts of the workstation to the build
+     * Removes parts from the workstation and sets build completion to 100%
+     * If insufficient parts, does not allow commit.
+     * If all product builds in this product order is complete, set
+     * the work order to complete.
+     * @param actionEvent commits parts to build
+     */
     public void onCommitButton(ActionEvent actionEvent) {
         int canCommit = 1;
 
@@ -391,6 +435,9 @@ public class ProductBuildController {
         }
     }
 
+    /**
+     * Generates label
+     */
     public void generateLabel() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/protrack/order_label.fxml"));

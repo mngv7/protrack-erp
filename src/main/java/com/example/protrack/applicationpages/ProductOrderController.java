@@ -20,6 +20,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Controller class for managing product orders in application
+ * This class handles the user interface for selecting the product
+ * builds to be processed.
+ */
 public class ProductOrderController {
 
     @FXML
@@ -53,6 +58,9 @@ public class ProductOrderController {
 
     private MainController mainController;
 
+    /**
+     * Initialises the controller class.
+     */
     public void initialize() {
         // Populate the ComboBoxes with data from the database
         productOrderComboBox.getItems().setAll(new ProductOrderDAO().getAllProductOrder());
@@ -71,6 +79,11 @@ public class ProductOrderController {
 
     }
 
+    /**
+     * Sets a reference to the main controller for navigation back to the main page.
+     *
+     * @param controller the main controller of the application
+     */
     public void setMainController(MainController controller) {
         this.mainController = controller;
     }
@@ -80,6 +93,10 @@ public class ProductOrderController {
         //System.out.println("WS ID HERE of po " + currentWorkstationId);
     }
 
+    /**
+     * Sets values of the table with new values
+     * @param newValue new values being set in table.
+     */
     private void setProductBuildTable(ProductOrder newValue) {
         ProductBuildDAO productBuildDAO = new ProductBuildDAO();
         List<ProductBuild> productBuildList = productBuildDAO.getAllProductBuildsWithPOID(newValue.getProductOrderID());
@@ -94,6 +111,10 @@ public class ProductOrderController {
         }
     }
 
+    /**
+     * Handles the close action for the popup window, displaying
+     * a confirmation dialog before closing the window.
+     */
     public void onClosePopupButton(ActionEvent actionEvent) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.initStyle(StageStyle.UNDECORATED);
@@ -126,6 +147,9 @@ public class ProductOrderController {
         }
     }
 
+    /**
+     * Button that goes to product build page
+     */
     public void goToProductBuildButton() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/protrack/product-build.fxml"));

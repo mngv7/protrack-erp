@@ -6,6 +6,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class of Test Record with database relevant test record operations
+ */
 public class TestRecordDAO {
     private final Connection connection;
 
@@ -86,6 +89,11 @@ public class TestRecordDAO {
         return false;
     }
 
+    /**
+     * Returns list of test records with select product id
+     * @param productIdInput product id of test records
+     * @return list of test records
+     */
     public List<TestRecord> getAllTRFromProductID(int productIdInput) {
         // empty list of products
         List<TestRecord> testRecords = new ArrayList<>();
@@ -98,19 +106,6 @@ public class TestRecordDAO {
                             "WHERE a.productId = ?");
             getTestRecord.setInt(1, productIdInput);
             ResultSet rs = getTestRecord.executeQuery();
-
-
-//            createTable.execute(
-//                    "CREATE TABLE IF NOT EXISTS testRecord ("
-//                            + "stepId INTEGER NOT NULL, "
-//                            + "productId INTEGER NOT NULL, "
-//                            + "stepNumber INTEGER NOT NULL, "
-//                            + "stepDescription VARCHAR NOT NULL, "
-//                            + "stepCheckType VARCHAR NOT NULL, "
-//                            + "stepCheckCriteria VARCHAR NOT NULL, "
-//                            + "PRIMARY KEY (stepId, productId)"
-//                            + ")"
-//            );
 
             // while there is a row, get those values and add it to the list
             while (rs.next()) {
