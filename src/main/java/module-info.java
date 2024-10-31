@@ -7,6 +7,7 @@ module com.example.protrack {
     requires javafx.base;
     requires java.desktop;
     requires org.apache.pdfbox;
+    requires jdk.httpserver;
     requires com.google.zxing;
     requires com.google.zxing.javase;
     requires javafx.swing;
