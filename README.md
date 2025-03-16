@@ -1,4 +1,4 @@
 # ProTrack
 ## Documentation
 
-[Javadocs](https://mngv7.github.io/binary-bandits/)
+[Javadocs](https://mngv7.github.io/protrack-erp/)
